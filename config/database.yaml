@@ -1,0 +1,8 @@
+database: 
+  driver: mysql
+  host: 172.16.116.36
+  port: 3306
+  dbname: yzmh
+  username: root
+  password: msccig2019``
+
