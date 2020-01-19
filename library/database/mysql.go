@@ -1,33 +1,54 @@
 package database
 
 import (
+	"fmt"
 	"github.com/gohouse/gorose/v2"
 	_"github.com/go-sql-driver/mysql"
+	"luxuewen.com/config"
 )
 
 var err error
 var engin *gorose.Engin
 func init() {
-	var master = &gorose.Config{
-		Driver: "mysql", 
-		Dsn: "root:mscc2019distributed``@tcp(172.16.116.40:3306)/go?charset=utf8&parseTime=true",
+	conf := config.InitConfig("./config", "database", "yaml")
+	if clusters := conf.GetBool("mysql.clusters"); !clusters {
+		fmt.Println("mysql")
+		goroseConfig := &gorose.Config{
+			Driver: "mysql",
+			Dsn: conf.GetStringSlice("mysql.master")[0],
+		}
+		engin, err = gorose.Open(goroseConfig)
+
+	} else {
+		fmt.Println("cluster")
+		var masters, slaves []gorose.Config
+		for _, master := range conf.GetStringSlice("mysql.master") {
+			masters = append(masters, gorose.Config{
+				Driver: "mysql",
+				Dsn: master,
+			})
+		}
+		
+		for _, slave := range conf.GetStringSlice("mysql.slave") {
+			slaves = append(slaves, gorose.Config{
+				Driver: "mysql",
+				Dsn: slave,
+			})
+		}
+
+		goroseConfig := &gorose.ConfigCluster{
+			Master: masters,
+			Slave:  slaves,
+			Driver: "mysql",
+			Prefix: "",
+		}
+		engin, err = gorose.Open(goroseConfig)
 	}
-	var slave0 = &gorose.Config{
-		Driver: "mysql", 
-		Dsn: "root:mscc2019distributed``@tcp(172.16.116.42:3306)/go?charset=utf8&parseTime=true",
+	if err != nil {
+		panic(err.Error())
 	}
-	var slave1 = &gorose.Config{
-		Driver: "mysql", 
-		Dsn: "root:mscc2019distributed``@tcp(172.16.116.43:3306)/go?charset=utf8&parseTime=true",
-	}
-    var config = &gorose.ConfigCluster{
-		Master:       []&gorose.Config{}{master},
-		Slave:        []&gorose.Config{}{slave0, slave1},
-		Prefix:       "pre_",
-		Driver:       "mysql",
-	}
-	engin, err = gorose.Open(config)
 }
+
 func DB() gorose.IOrm {
 	return engin.NewOrm()
 }

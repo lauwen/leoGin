@@ -1,8 +1,11 @@
-database: 
-  driver: mysql
-  host: 172.16.116.36
-  port: 3306
-  dbname: yzmh
-  username: root
-  password: msccig2019``
+mysql: 
+  # 是否是集群模式
+  clusters: true
+  master: 
+    - root:mscc2019distributed``@tcp(172.16.116.40:3306)/go?charset=utf8&parseTime=true
+  # 集群模式的从节点配置
+  slave:
+     - root:mscc2019distributed``@tcp(172.16.116.42:3306)/go?charset=utf8&parseTime=true
+     - root:mscc2019distributed``@tcp(172.16.116.43:3306)/go?charset=utf8&parseTime=true
+redis:
 

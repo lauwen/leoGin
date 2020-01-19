@@ -16,7 +16,7 @@ func InitConfig ( path string, fileName string, fileType string) (config *viper.
 	config.SetConfigName(fileName)
 	config.SetConfigType(fileType)
 	if err := config.ReadInConfig(); err != nil {
-		panic(err)
+		panic(err.Error())
 	} 
 	return config
 }
